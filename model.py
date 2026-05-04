@@ -1,19 +1,67 @@
 import torch
+import torch.nn as nn
+import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-# 1. Zdefiniuj transformację - musimy zamienić obrazki na Tensory (format zrozumiały dla PyTorch)
 transformacja = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-# 2. Pobierz zbiór treningowy (Train Set)
-# Podpowiedź: użyj datasets.MNIST, ustaw download=True i train=True
 train_set = datasets.MNIST(root='./data', train=True, download=True, transform=transformacja)
-
-# 3. Stwórz DataLoader
-# To narzędzie, które będzie podawać modelowi dane w małych paczkach (np. po 64 obrazki)
 train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
 
-print("Dane gotowe! Mamy", len(train_set), "obrazków do nauki.")
+class MojaSiec(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.warstwa1 = nn.Linear(784, 128) 
+        self.warstwa2 = nn.Linear(128, 10)  
+
+    def forward(self, x):
+        x = torch.relu(self.warstwa1(x))
+        x = self.warstwa2(x)
+        return x
+
+model = MojaSiec()
+
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+
+
+model.train()
+for epoka in range(2):
+    biezacy_loss = 0.0
+    for i, (obrazy, etykiety) in enumerate(train_loader):
+        optimizer.zero_grad()
+
+        obrazy = obrazy.view(-1, 28*28)
+
+        wyjscie = model(obrazy)
+        loss = criterion(wyjscie, etykiety)
+        loss.backward()
+        optimizer.step()
+
+        biezacy_loss += loss.item()
+        if i % 100 == 99:
+            print(f'Epoka{epoka + 1}, Paczka{i + 1}, Błąd:{biezacy_loss / 100:.3f}')
+            biezacy_loss = 0.0
+
+print("Trening zakończony.")
+
+
+
+model.eval()
+test_set = datasets.MNIST(root='./data', train=False, download=True, transform=transformacja)
+test_loader = DataLoader(test_set, batch_size=1, shuffle=True)
+
+obraz, etykieta = next(iter(test_loader))
+zmienna_test = obraz.view(-1, 28*28)
+
+with torch.no_grad():
+    output = model(zmienna_test)
+    zgadnieta = torch.argmax(output, dim=1)
+
+print(f"Prawdziwa cyfra: {etykieta.item()}")
+print(f"AI twierdzi, że to: {zgadnieta.item()}")
