@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
@@ -15,18 +16,20 @@ train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
 class MojaSiec(nn.Module):
     def __init__(self):
         super().__init__()
-        self.warstwa1 = nn.Linear(784, 128) 
-        self.warstwa2 = nn.Linear(128, 10)  
+        self.warstwa1 = nn.Linear(784, 256) 
+        self.warstwa2 = nn.Linear(256, 128) 
+        self.warstwa3 = nn.Linear(128, 10)  
 
     def forward(self, x):
         x = torch.relu(self.warstwa1(x))
-        x = self.warstwa2(x)
+        x = torch.relu(self.warstwa2(x))
+        x = self.warstwa3(x)
         return x
 
 model = MojaSiec()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
+optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 
 
@@ -65,3 +68,21 @@ with torch.no_grad():
 
 print(f"Prawdziwa cyfra: {etykieta.item()}")
 print(f"AI twierdzi, że to: {zgadnieta.item()}")
+
+
+wagi = model.warstwa1.weight.data
+
+plt.figure(figsize=(15, 5))
+for i in range(10):
+    duch = wagi[i].reshape(28, 28)
+    
+    plt.subplot(2, 5, i+1)
+    plt.imshow(duch, cmap='seismic')
+    plt.title(f'Neuron {i}')
+    plt.axis('off')
+
+plt.show()
+
+
+torch.save(model.state_dict(), "moj_model.pth")
+print("Model zapisany do pliku moj_model.pth!")
