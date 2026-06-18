@@ -7,6 +7,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
 transformacja = transforms.Compose([
+    transforms.RandomAffine(degrees=0, translate=(0.2, 0.2)),
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
