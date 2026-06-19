@@ -66,8 +66,6 @@ optimizerG = optim.Adam(netG.parameters(), lr=0.0002, betas=(0.5, 0.999))
 
 num_epochs = 12
 
-num_epochs = 12
-
 print("Zaczynamy trening cGAN...")
 for epoch in range(num_epochs):
     for i, (real_images, labels) in enumerate(dataloader):
@@ -109,4 +107,5 @@ for epoch in range(num_epochs):
         
     print(f"Epoka [{epoch+1}/{num_epochs}] | Loss D: {lossD.item():.4f} | Loss G: {lossG.item():.4f}")
 
-print("Trening cGAN zakończony!")
+torch.save(netG.state_dict(), "generator_cyfr.pth")
+print("Trening cGAN zakończony i model zapisany!")
